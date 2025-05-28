@@ -1,0 +1,7 @@
+{
+    "compilerOptions": {
+        "types": ["node", "@citizenfx/server"],
+        "esModuleInterop": true,
+        "lib": ["es2021"]
+    }
+}
