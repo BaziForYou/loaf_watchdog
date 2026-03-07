@@ -1,0 +1,16 @@
+{
+    "name": "loaf_watchdog",
+    "module": "src/index.ts",
+    "type": "module",
+    "private": true,
+    "devDependencies": {
+        "@citizenfx/server": "latest",
+        "@types/bun": "latest"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "dependencies": {
+        "chokidar": "^5"
+    }
+}

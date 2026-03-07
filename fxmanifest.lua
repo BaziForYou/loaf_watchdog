@@ -7,8 +7,8 @@ author "Loaf Scripts"
 description "A script to automatically restart FiveM scripts when the files are saved/changed."
 
 client_script "client/*.lua"
-server_script "server/dist/index.js"
+server_script "server/index.js"
 
-version "1.0.0"
+version "2.0.0"
 
 file "config.json"

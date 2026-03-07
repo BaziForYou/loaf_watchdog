@@ -1,12 +1,19 @@
 # Watchdog
 
-A FiveM script that automatically restarts resources when a `.lua` file is saved, created or deleted.
+A FiveM script that automatically restarts resources when a `.lua` file is saved, created or deleted, speeding up development.
 
-The watchdog also has the ability to automatically delete all entities created by resources when they are stopped. To enable this feature, set `DELETE_ENTITIES` to `true` in the `config.json`.
+## Features
+
+- Automatically restarts resources when a `.lua` file is changed, created or deleted
+- Automatically refreshes resources when `fxmanifest.lua` is changed or created, or when files are created
+- Delete entities when resources are stopped
+    - Can be configured in `config.json` by changing `DELETE_ENTITIES`
 
 ## Installation
 
-1. Add the script to your `resources` folder
-2. Add `add_ace resource.loaf_watchdog command.refresh allow` to your `server.cfg` to allow the script to refresh resources
-3. Add `start loaf_watchdog` to the bottom of your `server.cfg`
-4. Restart your server
+1. Download the latest release from the [releases page](https://github.com/loaf-scripts/loaf_watchdog/releases/latest/download/loaf_watchdog.zip)
+2. Add the script to your `resources` folder
+3. Add `add_ace resource.loaf_watchdog command.refresh allow` to your `server.cfg`
+4. Add `add_unsafe_worker_permission loaf_watchdog` to your `server.cfg`
+5. Add `start loaf_watchdog` to the bottom of your `server.cfg`
+6. Start/restart your server

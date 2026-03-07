@@ -1,16 +1,11 @@
 ---@class Config
----@field START_IF_NOT_STARTED boolean
 ---@field DELETE_ENTITIES boolean
 
 ---@type Config
 CONFIG = json.decode(LoadResourceFile(GetCurrentResourceName(), "config.json"))
 
 AddEventHandler("onResourceStop", function(resourceName)
-    if resourceName == GetCurrentResourceName() then
-        return
-    end
-
-    if not CONFIG.DELETE_ENTITIES then
+    if not CONFIG.DELETE_ENTITIES or resourceName == GetCurrentResourceName() then
         return
     end
 
@@ -42,8 +37,12 @@ AddEventHandler("onResourceStop", function(resourceName)
     local deleted = false
 
     for i = 1, #entitiesToRemove do
-        if DoesEntityExist(entitiesToRemove[i]) then
-            DeleteEntity(entitiesToRemove[i])
+        local entity = entitiesToRemove[i]
+
+        if DoesEntityExist(entity) then
+            SetEntityAsMissionEntity(entity, true, true)
+            DeleteEntity(entity)
+
             deleted = true
         end
     end
