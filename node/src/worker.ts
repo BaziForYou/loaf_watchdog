@@ -137,7 +137,7 @@ function watch(data: {
                 const scriptFiles = await getResourceScriptFiles(resourceName)
 
                 if (scriptFiles.size > 0) {
-                    const patterns = [...scriptFiles]
+                    const patterns = [...scriptFiles].map((p) => p.replace(/\*\*\./g, '**/*.'))
                     const isMatch = picomatch.isMatch(relativeFilePath, patterns, { dot: true })
 
                     if (!isMatch) {
