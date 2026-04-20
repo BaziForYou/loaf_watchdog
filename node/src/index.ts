@@ -73,6 +73,24 @@ onWorkerEvent('getStartedResources', () => {
     return resources
 })
 
+const SCRIPT_KEYS = ['client_script', 'server_script', 'shared_script'] as const
+
+onWorkerEvent('getResourceScriptFiles', (resourceName: string) => {
+    const scriptFiles = new Set<string>()
+
+    for (const key of SCRIPT_KEYS) {
+        for (let i = 0; i < GetNumResourceMetadata(resourceName, key); i++) {
+            const path = GetResourceMetadata(resourceName, key, i)
+
+            if (path.startsWith('@')) continue
+
+            scriptFiles.add(path)
+        }
+    }
+
+    return scriptFiles
+})
+
 worker.on('error', (error) => {
     console.error('Worker error:', error)
 })

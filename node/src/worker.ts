@@ -1,17 +1,22 @@
 import { parentPort } from 'worker_threads'
 import { existsSync } from 'node:fs'
 import chokidar from 'chokidar'
+import picomatch from 'picomatch'
 
 const COLORS = {
     add: '^2+',
     change: 'Modified ^5',
-    unlink: '^1-'
+    unlink: '^1-',
+    unlinkDir: '^1-'
 } as const
+
+const ignoredDirs = new Set(['node_modules', '.git', 'ui', 'html', 'uploads', 'stream'])
 
 let debouncedRestart: NodeJS.Timeout | null = null
 let nextId = 0
 
 const messageQueue = new Map<number, (response: any) => void>()
+const scriptFilesCache = new Map<string, Set<string>>()
 
 function triggerEvent(action: string, ...args: any[]) {
     if (!parentPort) return
@@ -26,6 +31,18 @@ async function triggerCallback<T>(action: string, ...args: any[]): Promise<T> {
         messageQueue.set(id, resolve)
         parentPort?.postMessage({ action, id, data: args })
     })
+}
+
+async function getResourceScriptFiles(resourceName: string): Promise<Set<string>> {
+    if (scriptFilesCache.has(resourceName)) {
+        return scriptFilesCache.get(resourceName)!
+    }
+
+    const files = await triggerCallback<Set<string>>('getResourceScriptFiles', resourceName)
+
+    scriptFilesCache.set(resourceName, files)
+
+    return files
 }
 
 function print(...args: any[]) {
@@ -63,29 +80,24 @@ function watch(data: {
 
     chokidar
         .watch(`${root}${separator}`, {
-            ignored: [
-                '**/node_modules',
-                '**/.git',
-                '**/ui',
-                '**/html',
-                '**/uploads',
-                '**/stream',
-                (filePath: string) => {
-                    const basename = filePath.split(separator).pop()
-                    const dotIndex = basename?.lastIndexOf('.')
+            ignored: (filePath, stats) => {
+                const segments = filePath.replace(/\\/g, '/').split('/')
 
-                    return dotIndex !== -1 && !basename?.endsWith('.lua')
-                }
-            ],
+                if (segments.some((seg) => ignoredDirs.has(seg))) return true
+
+                if (stats?.isFile() && !filePath.endsWith('.lua') && !filePath.endsWith('.js')) return true
+
+                return false
+            },
             persistent: true,
             ignoreInitial: true
         })
         .on('all', async (event, path) => {
-            if (event !== 'add' && event !== 'change' && event !== 'unlink') return
+            if (event !== 'add' && event !== 'change' && event !== 'unlink' && event !== 'unlinkDir') return
 
             const parts = path
                 .replace(`${root}/`.replaceAll('/', separator), '')
-                .split(separator)
+                .split(/[\/\\]/)
                 .filter((part) => part !== 'resources' && part[0] !== '[' && part[part.length - 1] !== ']')
 
             const resourceName = parts[0]
@@ -103,12 +115,35 @@ function watch(data: {
 
             const relativeFilePath = parts.slice(1).join('/')
 
+            if (event === 'unlinkDir' && relativeFilePath === '') {
+                print(`Resource ^4${resourceName}^7 was removed. Stopping.`)
+                triggerEvent('refreshResources')
+                triggerEvent('stopResource', resourceName)
+
+                return
+            }
+
             if (relativeFilePath === 'fxmanifest.lua' && event == 'unlink') {
                 print(`Resource ^4${resourceName}^7 was removed. Stopping.`)
                 triggerEvent('refreshResources')
                 triggerEvent('stopResource', resourceName)
 
                 return
+            }
+
+            if (relativeFilePath === 'fxmanifest.lua') {
+                scriptFilesCache.delete(resourceName)
+            } else {
+                const scriptFiles = await getResourceScriptFiles(resourceName)
+
+                if (scriptFiles.size > 0) {
+                    const patterns = [...scriptFiles]
+                    const isMatch = picomatch.isMatch(relativeFilePath, patterns, { dot: true })
+
+                    if (!isMatch) {
+                        return
+                    }
+                }
             }
 
             if (debouncedRestart) clearTimeout(debouncedRestart)
@@ -120,8 +155,7 @@ function watch(data: {
                     print('Refreshing resources & files')
                     triggerEvent('refreshResources')
                 }
-
-                const allParts = path.split(separator)
+                const allParts = path.split(/[\/\\]/)
                 const resourceIndex = allParts.findIndex((part) => part === resourceName)
                 const resourcePath = allParts.slice(0, resourceIndex + 1).join(separator)
 

@@ -5,12 +5,17 @@
     "private": true,
     "devDependencies": {
         "@citizenfx/server": "latest",
-        "@types/bun": "latest"
+        "@types/bun": "latest",
+        "@types/picomatch": "^4.0.3"
     },
     "peerDependencies": {
         "typescript": "^5"
     },
     "dependencies": {
-        "chokidar": "^5"
+        "chokidar": "^5",
+        "picomatch": "^4.0.4"
+    },
+    "scripts": {
+        "watch": "bun run build --watch"
     }
 }

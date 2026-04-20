@@ -1,13 +1,13 @@
 # Watchdog
 
-A FiveM script that automatically restarts resources when a `.lua` file is saved, created or deleted, speeding up development.
+A FiveM script that automatically restarts resources when a `.lua` or `.js` file is saved, created, or deleted, speeding up development.
 
 ## Features
 
-- Automatically restarts resources when a `.lua` file is changed, created or deleted
+- Automatically restarts resources when a `.lua` or `.js` file is changed, created, or deleted
 - Automatically refreshes resources when `fxmanifest.lua` is changed or created, or when files are created
 - Delete entities when resources are stopped
-    - Can be configured in `config.json` by changing `DELETE_ENTITIES`
+    - Can be disabled in `config.json` by changing `DELETE_ENTITIES`
 
 ## Installation
 
